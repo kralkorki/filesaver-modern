@@ -55,6 +55,6 @@ A bug report is much more useful with:
   the page's console can tell you, and it decides which code path you hit
 - A minimal reproduction, preferably as a CodePen
 
-## Licence
+## License
 
 By contributing you agree that your work is licensed under the MIT licence, the same as the original.

@@ -2,6 +2,11 @@
 
 Save `Blob` and `File` objects in the browser — with iOS and Chromium support that actually works.
 
+[![CI](https://github.com/kralkorki/filesaver-modern/actions/workflows/ci.yml/badge.svg)](https://github.com/kralkorki/filesaver-modern/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/filesaver-modern)](https://www.npmjs.com/package/filesaver-modern)
+[![npm downloads](https://img.shields.io/npm/dm/filesaver-modern)](https://www.npmjs.com/package/filesaver-modern)
+[![license](https://img.shields.io/npm/l/filesaver-modern)](./LICENSE)
+
 **A community-maintained continuation of [FileSaver.js](https://github.com/eligrey/FileSaver.js) by
 [Eli Grey](http://eligrey.com).** Same `saveAs(blob, name, opts)` API. MIT licensed. Zero dependencies.
 
@@ -41,9 +46,6 @@ Also removed:
 npm install filesaver-modern
 ```
 
-[![npm version](https://img.shields.io/npm/v/filesaver-modern)](https://www.npmjs.com/package/filesaver-modern)
-[![npm downloads](https://img.shields.io/npm/dm/filesaver-modern)](https://www.npmjs.com/package/filesaver-modern)
-
 Zero dependencies, no install scripts, nothing to build.
 
 ```js
@@ -82,6 +84,20 @@ The API is unchanged from the original, so this is a drop-in swap:
 `saveAs()` now returns a Promise when an async strategy (file picker or share sheet) runs, and
 `undefined` otherwise. Existing callers ignore the return value, so nothing breaks. Pass
 `{ silent: true }` for byte-for-byte identical 2.x behaviour.
+
+### Should you switch?
+
+Probably yes if any of these are true for you:
+
+- Your "download" button opens a new tab or does nothing on iPhone — that bug is the reason this
+  project exists
+- You want a real Save As dialog on Chrome instead of files landing in `~/Downloads` unnamed
+- You export UTF-8 CSV or XML and Excel shows mojibake — `autoBom` never worked in 2.x
+- You want TypeScript types bundled rather than a stale `@types/file-saver`
+
+Stay on `file-saver` if none of those apply. The 2.x line works fine on desktop browsers, and there is
+no reason to change a working dependency. Eli Grey still owns that package and it is still the right
+answer for many projects — this is an alternative, not a replacement.
 
 ### Options
 
@@ -143,6 +159,22 @@ WebView, a worker with no DOM — and asserts on observable behaviour rather tha
 suite runs against real Chromium and checks the actual bytes that would reach disk, which is how the
 `autoBom` regression was caught after the fakes had hidden it.
 
+### What has *not* been tested
+
+Being straight about the limits of the above:
+
+- **The iOS path has not run on a real iPhone.** It is exercised against a simulated
+  `navigator.share` / `canShare`, and the fix follows the documented platform behaviour — but no
+  physical device has confirmed it. If you test on iOS and it misbehaves, please open an issue; that
+  is the most useful thing you could bring.
+- **Safari on macOS has not been verified on hardware.** It takes the anchor path, which is the
+  original's code and unchanged.
+- **No automated browser matrix.** The browser suite was run manually in Chromium. There is no
+  Playwright or WebDriver setup in this repo.
+
+If you can check any of the above and tell us what happened, that is worth more than another
+Node test.
+
 ---
 
 ## Credits
@@ -151,7 +183,7 @@ suite runs against real Chromium and checks the actual bytes that would reach di
   and every design decision here follows the original's.
 - Everyone who filed the issues that pinpointed the real problems, especially the years-long iOS thread.
 
-**Licence:** MIT — see [LICENSE](./LICENSE).
+**License:** MIT — see [LICENSE](./LICENSE).
 
 ## Contributing
 

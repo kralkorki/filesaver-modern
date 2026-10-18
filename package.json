@@ -65,7 +65,7 @@
     "no-dependencies",
     "drop-in-replacement"
   ],
-  "author": "Systa",
+  "author": "kralkorki",
   "contributors": [
     "Eli Grey <http://eligrey.com> (original author of FileSaver.js)"
   ],
