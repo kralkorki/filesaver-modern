@@ -1,7 +1,7 @@
 {
   "name": "filesaver-modern",
-  "version": "3.0.0",
-  "description": "Save Blob/File objects client-side with working iOS and Chromium support. Community-maintained continuation of FileSaver.js — same saveAs() API, zero dependencies.",
+  "version": "3.0.1",
+  "description": "file-saver alternative: saveAs() for Blob/File, with working iOS + Chromium support. Same API, zero deps.",
   "main": "dist/FileSaver.js",
   "module": "dist/FileSaver.mjs",
   "types": "dist/FileSaver.d.ts",
@@ -35,6 +35,9 @@
     "filesaver",
     "saveAs",
     "save-as",
+    "file saver",
+    "filesaver.js",
+    "saveAs.js",
     "blob",
     "download",
     "file-download",
@@ -55,15 +58,14 @@
     "export-json",
     "save-image",
     "download-file",
-    "offline",
-    "progressive-enhancement",
     "blob-url",
     "object-url",
     "utf8-bom",
     "excel",
     "csv-export",
     "no-dependencies",
-    "drop-in-replacement"
+    "drop-in-replacement",
+    "file-saver-alternative"
   ],
   "author": "kralkorki",
   "contributors": [

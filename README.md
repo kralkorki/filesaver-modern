@@ -18,6 +18,10 @@ Save `Blob` and `File` objects in the browser — with iOS and Chromium support 
 > This project exists to answer that question properly and keep the library maintained. All design
 > credit belongs to Eli. This is unofficial — not affiliated with or endorsed by the original author.
 
+**Looking for `file-saver`?** You are in the right place. If you arrived from npm or from the original
+repository's issue tracker: this is a drop-in replacement for the `file-saver` package, with the same
+`saveAs(blob, name, opts)` signature, and it fixes the iOS bug that package still has.
+
 ---
 
 ## Why this exists
