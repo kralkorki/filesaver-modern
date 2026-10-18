@@ -41,6 +41,9 @@ Also removed:
 npm install filesaver-modern
 ```
 
+[![npm version](https://img.shields.io/npm/v/filesaver-modern)](https://www.npmjs.com/package/filesaver-modern)
+[![npm downloads](https://img.shields.io/npm/dm/filesaver-modern)](https://www.npmjs.com/package/filesaver-modern)
+
 Zero dependencies, no install scripts, nothing to build.
 
 ```js
