@@ -8,6 +8,9 @@ node_modules/
 # Local scratch
 *.log
 testrun.log
+
+# NEVER commit this — it can contain an npm auth token.
+.npmrc
 .DS_Store
 Thumbs.db
 
