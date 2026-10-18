@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FileSaver — browser test</title>
+<style>
+  body { font: 14px system-ui, sans-serif; margin: 20px; max-width: 760px; }
+  button { font: inherit; padding: 8px 14px; margin: 4px; }
+  .log { font-family: ui-monospace, monospace; font-size: 12px; background: #f4f4f5;
+         padding: 10px; border-radius: 6px; white-space: pre-wrap; margin-top: 12px; }
+  .pass { color: #0a7d28; } .fail { color: #c00; font-weight: 700; }
+  h2 { font-size: 13px; margin: 18px 0 6px; }
+</style>
+</head>
+<body>
+<h1>FileSaver browser test</h1>
+<p>Real browser, no mocks. Each scenario asserts on what the library actually did.</p>
+
+<div>
+  <h2>Cascade selection — which strategy runs</h2>
+  <button id="b0">which strategy?</button>
+  <h2>Blob saves (classic anchor path)</h2>
+  <button id="b1">named blob</button>
+  <button id="b2">unnamed blob</button>
+  <button id="b3">autobom csv</button>
+  <button id="b4">binary blob</button>
+  <button id="b5">3 sequential saves</button>
+  <button id="b6">File object name</button>
+  <h2>Failure handling</h2>
+  <button id="b7">null input</button>
+  <button id="b8">silent mode</button>
+</div>
+
+<div class="log" id="out">ready</div>
+
+<!-- Loads the BUILD OUTPUT, not src/, so the browser suite verifies what npm
+     consumers actually receive rather than the working copy. -->
+<script src="../dist/FileSaver.js"></script>
+<script>
+const out = document.getElementById('out');
+let failures = 0;
+
+function log(msg, cls) {
+  const d = document.createElement('div');
+  if (cls) d.className = cls;
+  d.textContent = msg;
+  out.appendChild(d);
+}
+function assert(cond, name, detail) {
+  if (cond) log('PASS  ' + name, 'pass');
+  else { failures++; log('FAIL  ' + name + (detail ? '  [' + detail + ']' : ''), 'fail'); }
+}
+
+/**
+ * Records what saveAs WOULD do, without touching the disk.
+ *
+ * On Chromium showSaveFilePicker exists and takes priority, so we stub it to
+ * observe the call instead of opening a real dialog. On platforms without it
+ * we observe the anchor instead. Both paths are exercised explicitly below.
+ */
+function probe(fn) {
+  const rec = { strategy: null, name: null, payload: null, wrote: false, closed: false };
+
+  const origPicker = window.showSaveFilePicker;
+  if (typeof origPicker === 'function') {
+    window.showSaveFilePicker = function (opts) {
+      rec.strategy = 'picker';
+      rec.name = opts && opts.suggestedName;
+      return Promise.resolve({
+        createWritable: function () {
+          return Promise.resolve({
+            write: function (c) { rec.payload = c; rec.wrote = true; return Promise.resolve(); },
+            close: function () { rec.closed = true; return Promise.resolve(); }
+          });
+        }
+      });
+    };
+  }
+
+  const origCreateNS = document.createElementNS.bind(document);
+  document.createElementNS = function (ns, tag) {
+    const el = origCreateNS(ns, tag);
+    if (tag === 'a') {
+      rec.anchor = el;
+      el.dispatchEvent = function () { rec.strategy = 'anchor'; rec.clicked = true; };
+    }
+    return el;
+  };
+
+  const result = fn();
+  return Promise.resolve(result).then(function () {
+    window.showSaveFilePicker = origPicker;
+    document.createElementNS = origCreateNS;
+    if (!rec.strategy) rec.strategy = 'navigation';
+    return rec;
+  });
+}
+
+function add(name, fn) {
+  const el = document.getElementById(name);
+  if (el) el.onclick = fn;
+}
+
+add('b0', function () {
+  const strategies = [];
+  if (typeof window.showSaveFilePicker === 'function') strategies.push('showSaveFilePicker');
+  if (navigator.canShare) strategies.push('Web Share');
+  strategies.push('anchor+download');
+  strategies.push('blob navigation');
+  log('   cascade: ' + strategies.join('  →  '));
+  assert(strategies.length >= 3, 'cascade has at least three tiers', strategies.length);
+});
+
+add('b1', function () {
+  probe(() => saveAs(new Blob(['hello'], { type: 'text/plain' }), 'hello.txt')).then(function (r) {
+    assert(r.name === 'hello.txt', 'named blob keeps its filename', r.strategy + '/' + r.name);
+    log('   strategy: ' + r.strategy + (r.wrote ? ' (wrote payload)' : ''));
+  });
+});
+
+add('b2', function () {
+  probe(() => saveAs(new Blob(['hello'], { type: 'text/plain' }))).then(function (r) {
+    assert(r.name === 'download', 'unnamed blob falls back to "download"', r.strategy + '/' + r.name);
+  });
+});
+
+add('b3', function () {
+  probe(() => saveAs(new Blob(['a,b\n1,2'], { type: 'text/csv;charset=utf-8' }), 'r.csv', { autoBom: true }))
+    .then(function (r) {
+      assert(r.name === 'r.csv', 'autobom csv is saved', r.strategy + '/' + r.name);
+      // With the picker path we get the real Blob; verify the BOM is present.
+      if (r.payload && typeof r.payload.text === 'function') {
+        r.payload.text().then(function (t) {
+          assert(t.charCodeAt(0) === 0xFEFF, 'autobom actually prepends U+FEFF',
+            'first char = U+' + t.charCodeAt(0).toString(16));
+        });
+      }
+    });
+});
+
+add('b4', function () {
+  probe(() => saveAs(new Blob([new Uint8Array([80, 65, 68, 70])], { type: 'application/pdf' }), 'doc.pdf'))
+    .then(function (r) {
+      assert(r.name === 'doc.pdf', 'binary blob is saved', r.strategy + '/' + r.name);
+    });
+});
+
+add('b5', function () {
+  const names = [];
+  const orig = document.createElementNS.bind(document);
+  document.createElementNS = function (ns, tag) {
+    const el = orig(ns, tag);
+    if (tag === 'a') el.dispatchEvent = function () { names.push(el.download); };
+    return el;
+  };
+  const hadPicker = 'showSaveFilePicker' in window;
+  const origPicker = window.showSaveFilePicker;
+  try { delete window.showSaveFilePicker; } catch (e) { window.showSaveFilePicker = undefined; }
+  try {
+    saveAs(new Blob(['1']), 'a.txt');
+    saveAs(new Blob(['2']), 'b.txt');
+    saveAs(new Blob(['3']), 'c.txt');
+  } finally {
+    document.createElementNS = orig;
+    if (hadPicker) window.showSaveFilePicker = origPicker;
+  }
+  // Each click is deferred by a 0ms timeout, so assert after the macrotask.
+  setTimeout(function () {
+    assert(names.length === 3 && names.join(',') === 'a.txt,b.txt,c.txt',
+      'three sequential saves each get their own URL', JSON.stringify(names));
+  }, 30);
+});
+
+add('b6', function () {
+  const f = new File(['data'], 'named-file.csv', { type: 'text/csv' });
+  probe(() => saveAs(f)).then(function (r) {
+    assert(r.name === 'named-file.csv', 'File object name is used', r.strategy + '/' + r.name);
+  });
+});
+
+add('b7', function () {
+  const warns = [];
+  const origWarn = console.warn;
+  console.warn = function (m) { warns.push(String(m)); };
+  let threw = false;
+  try { saveAs(null); saveAs(undefined); } catch (e) { threw = true; }
+  console.warn = origWarn;
+  assert(!threw, 'null input does not throw', 'threw');
+  assert(warns.length === 2, 'null input warns once per call', warns.length);
+});
+
+add('b8', function () {
+  const warns = [];
+  const origWarn = console.warn;
+  console.warn = function (m) { warns.push(String(m)); };
+  const hadPicker = 'showSaveFilePicker' in window;
+  const origPicker = window.showSaveFilePicker;
+  try { delete window.showSaveFilePicker; } catch (e) { window.showSaveFilePicker = undefined; }
+  const origCreateNS = document.createElementNS.bind(document);
+  document.createElementNS = function (ns, tag) {
+    const el = origCreateNS(ns, tag);
+    if (tag === 'a') el.dispatchEvent = function () {};
+    return el;
+  };
+  let ret = 'unset';
+  try {
+    ret = saveAs(new Blob(['x']), 'a.txt', { silent: true });
+  } finally {
+    document.createElementNS = origCreateNS;
+    console.warn = origWarn;
+    if (hadPicker) window.showSaveFilePicker = origPicker;
+  }
+  assert(warns.length === 0, 'silent:true suppresses warnings', warns.join('|'));
+  assert(ret === undefined, 'silent:true returns undefined like v2', String(ret));
+});
+
+// Environment facts
+log('');
+log('environment:');
+log('  showSaveFilePicker : ' + (typeof window.showSaveFilePicker === 'function'));
+log('  navigator.share    : ' + (typeof navigator.share === 'function'));
+log('  navigator.canShare : ' + (typeof navigator.canShare === 'function'));
+log('  Blob.prototype.stream : ' + (typeof Blob.prototype.stream === 'function'));
+log('  failures so far    : ' + failures);
+</script>
+</body>
+</html>

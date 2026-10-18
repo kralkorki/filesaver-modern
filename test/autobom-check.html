@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>autobom verification</title></head>
+<body><pre id="o">running…</pre>
+<script src="../src/FileSaver.js"></script>
+<script>
+const out = [];
+const lines = [];
+function p(s){ lines.push(s); document.getElementById('o').textContent = lines.join('\n'); }
+
+// Capture the bytes the library would actually write to disk.
+let captured = null;
+const had = 'showSaveFilePicker' in window;
+const orig = window.showSaveFilePicker;
+window.showSaveFilePicker = function(opts){
+  return Promise.resolve({ createWritable: () => Promise.resolve({
+    write: (c) => { captured = c; return Promise.resolve(); },
+    close: () => Promise.resolve()
+  })});
+};
+
+// autoBom:true on a UTF-8 text type — this is the case the 2.x regex silently
+// broke, so it is the case worth proving.
+saveAs(new Blob(['a,b\n1,2'], { type: 'text/csv;charset=utf-8' }), 'r.csv', { autoBom: true })
+  .then(function () {
+    if (!captured) { p('FAIL: nothing captured'); return null; }
+    // Read raw bytes, never decoded text: TextDecoder strips a leading UTF-8
+    // BOM, which would hide the very thing we are verifying.
+    if (typeof captured.getReader === 'function') {
+      const reader = captured.getReader();
+      return (function pump() {
+        return reader.read().then(function (r) {
+          if (r.done) return null;
+          const bytes = new Uint8Array(r.value);
+          report(bytes);
+        });
+      })();
+    }
+    return captured.arrayBuffer().then(function (ab) { report(new Uint8Array(ab)); });
+  })
+  .catch(function (e) { p('ERROR ' + e.message); })
+  .finally(function () { if (had) window.showSaveFilePicker = orig; });
+
+function report(bytes) {
+  const hasBom = bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF;
+  p('first 3 bytes : ' + Array.from(bytes.slice(0, 3)).map(x => x.toString(16).padStart(2, '0')).join(' '));
+  p('total bytes  : ' + bytes.length + '  (raw "a,b\\n1,2" = 7, BOM adds 3)');
+  p('');
+  p(hasBom ? 'PASS  autoBom prepends the UTF-8 BOM (ef bb bf)'
+           : 'FAIL  no BOM prepended');
+  if (hasBom) p('        content after BOM: ' + JSON.stringify(new TextDecoder().decode(bytes.slice(3))));
+}
+</script>
+</body></html>

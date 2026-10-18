@@ -1,0 +1,16 @@
+# dist/ is intentionally COMMITTED.
+# npm consumers install the package from a tarball, so the build output has to
+# be in the repository — and CI verifies it matches src/ rather than trusting it.
+
+# Dependencies — this package has none, but keep the guard
+node_modules/
+
+# Local scratch
+*.log
+testrun.log
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

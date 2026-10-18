@@ -1,0 +1,90 @@
+{
+  "name": "filesaver-modern",
+  "version": "3.0.0",
+  "description": "Save Blob/File objects client-side with working iOS and Chromium support. Community-maintained continuation of FileSaver.js — same saveAs() API, zero dependencies.",
+  "main": "dist/FileSaver.js",
+  "module": "dist/FileSaver.mjs",
+  "types": "dist/FileSaver.d.ts",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "types": "./dist/FileSaver.d.ts",
+      "import": "./dist/FileSaver.mjs",
+      "require": "./dist/FileSaver.js",
+      "default": "./dist/FileSaver.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "browser": "dist/FileSaver.js",
+  "unpkg": "dist/FileSaver.js",
+  "jsdelivr": "dist/FileSaver.js",
+  "files": [
+    "dist/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node build.js",
+    "test": "node --test test/FileSaver.test.js",
+    "test:browser": "node serve.js",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "file-saver",
+    "filesaver",
+    "saveAs",
+    "save-as",
+    "blob",
+    "download",
+    "file-download",
+    "save-file",
+    "client-side",
+    "browser",
+    "ios",
+    "safari",
+    "iphone",
+    "chrome",
+    "chromium",
+    "showSaveFilePicker",
+    "file-system-access-api",
+    "web-share-api",
+    "export-csv",
+    "export-pdf",
+    "export-excel",
+    "export-json",
+    "save-image",
+    "download-file",
+    "offline",
+    "progressive-enhancement",
+    "blob-url",
+    "object-url",
+    "utf8-bom",
+    "excel",
+    "csv-export",
+    "no-dependencies",
+    "drop-in-replacement"
+  ],
+  "author": "Systa",
+  "contributors": [
+    "Eli Grey <http://eligrey.com> (original author of FileSaver.js)"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kralkorki/filesaver-modern.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kralkorki/filesaver-modern/issues"
+  },
+  "homepage": "https://github.com/kralkorki/filesaver-modern#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/kralkorki"
+  }
+}

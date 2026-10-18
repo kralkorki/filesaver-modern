@@ -1,0 +1,14 @@
+# Normalise line endings in the repository. Every text file is checked out with
+# LF so that test expectations, byte comparisons and diffs do not change between
+# Windows, macOS and Linux contributors.
+* text=auto eol=lf
+
+# Binary assets — never touched
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

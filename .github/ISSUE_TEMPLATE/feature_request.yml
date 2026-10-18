@@ -1,0 +1,38 @@
+name: Feature request
+description: Suggest a capability or an improvement
+labels: enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that is hard or impossible today?
+      placeholder: Generate a 2GB file without holding it in memory.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: If you have a shape in mind, show it. Keep saveAs(blob, name, opts) working regardless.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: This does not change the existing saveAs signature in a breaking way.
+          required: true
+        - label: I would be willing to send a pull request.
+          required: false

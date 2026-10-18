@@ -1,0 +1,71 @@
+name: Bug report
+description: Something does not work, or works incorrectly
+labels: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. A download library has a wide blast radius, so the more precise the
+        report, the faster it can be fixed.
+
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: What happens
+      description: What you observe, and what you expected instead.
+      placeholder: |
+        Clicking "Export CSV" opens the file in a new tab instead of downloading it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: A CodePen, a gist, or a few lines that show it.
+      placeholder: |
+        const blob = new Blob(['a,b'], { type: 'text/csv' });
+        saveAs(blob, 'test.csv');
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and platform
+      placeholder: Safari 17 on iPhone 15, Chrome 120 on Windows 11
+    validations:
+      required: true
+
+  - type: textarea
+    id: capabilities
+    attributes:
+      label: Feature detection output
+      description: |
+        Open the console on the affected page and paste the result of:
+        console.log({
+          showSaveFilePicker: typeof window.showSaveFilePicker,
+          share: typeof navigator.share,
+          canShare: typeof navigator.canShare
+        })
+      render: text
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: 3.0.0
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: I am using filesaver-modern, not the original file-saver package.
+          required: true
